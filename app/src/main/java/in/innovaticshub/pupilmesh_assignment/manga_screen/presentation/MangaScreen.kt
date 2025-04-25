@@ -27,10 +27,13 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,6 +46,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import coil3.compose.AsyncImage
 import `in`.innovaticshub.pupilmesh_assignment.manga_screen.data.local.entity.MangaDataTable
 import `in`.innovaticshub.pupilmesh_assignment.presentation.PupilMeshScreens
+import kotlinx.coroutines.delay
 
 @Composable
 fun MangaScreen(navController: NavHostController) {
@@ -50,50 +54,87 @@ fun MangaScreen(navController: NavHostController) {
     val isOnline by viewModel.isOnline.collectAsState()
     val mangaItems = viewModel.mangaPagingFlow.collectAsLazyPagingItems()
 
-    Column {
-        if (!isOnline) {
-            OfflineBanner()
-        }
+     var internetRestored by remember { mutableStateOf(false) }
 
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(120.dp),
-            contentPadding = PaddingValues(8.dp),
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(mangaItems.itemCount) { index ->
-                mangaItems[index]?.let { manga ->
-                    MangaItem(manga, navController)
+     LaunchedEffect(isOnline) {
+        if (isOnline) {
+            internetRestored = true
+             mangaItems.refresh()
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column {
+             if (!isOnline) {
+                OfflineBanner()
+            }
+
+             if (internetRestored) {
+                InternetRestoredBanner()
+                 LaunchedEffect(internetRestored) {
+                    delay(3000)
+                    internetRestored = false
                 }
             }
 
-            when (mangaItems.loadState.append) {
-                is LoadState.Loading -> {
-                    item { LoadingIndicator() }
-                }
-                is LoadState.Error -> {
-                    item {
-                        ErrorItem(
-                            error = (mangaItems.loadState.append as LoadState.Error).error,
-                            onRetry = { mangaItems.retry() }
-                        )
+             LazyVerticalGrid(
+                columns = GridCells.Adaptive(120.dp),
+                contentPadding = PaddingValues(8.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(mangaItems.itemCount) { index ->
+                    mangaItems[index]?.let { manga ->
+                        MangaItem(manga, navController)
                     }
                 }
-                else -> {}
+
+                 when (mangaItems.loadState.append) {
+                    is LoadState.Loading -> {
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
+                    is LoadState.Error -> {
+                        item {
+                            ErrorItem(
+                                error = (mangaItems.loadState.append as LoadState.Error).error,
+                                onRetry = { mangaItems.retry() }
+                            )
+                        }
+                    }
+                    else -> {}
+                }
             }
         }
 
-        if (mangaItems.loadState.refresh is LoadState.Loading) {
-             LoadingIndicator(modifier = Modifier.fillMaxSize())
+         if (mangaItems.loadState.refresh is LoadState.Loading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
         }
 
-        if (mangaItems.loadState.refresh is LoadState.Error) {
-            ErrorItem(
-                error = (mangaItems.loadState.refresh as LoadState.Error).error,
-                onRetry = { mangaItems.refresh() }
-            )
+         if (mangaItems.loadState.refresh is LoadState.Error) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                ErrorItem(
+                    error = (mangaItems.loadState.refresh as LoadState.Error).error,
+                    onRetry = { mangaItems.refresh() }
+                )
+            }
         }
     }
 }
+
 @Composable
 private fun OfflineBanner() {
     Box(
@@ -104,6 +145,19 @@ private fun OfflineBanner() {
         contentAlignment = Alignment.Center
     ) {
         Text("Offline Mode - Showing Cached Data", color = Color.Black)
+    }
+}
+
+ @Composable
+private fun InternetRestoredBanner() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.Green.copy(alpha = 0.8f))
+            .padding(8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text("Internet Restored - Refreshing Data...", color = Color.White)
     }
 }
 
@@ -137,10 +191,10 @@ fun MangaItem(manga: MangaDataTable, navController: NavHostController) {
                     .fillMaxWidth()
                     .weight(1f)
             )
-
         }
     }
 }
+
 @Composable
 private fun ErrorItem(error: Throwable, onRetry: () -> Unit) {
     Column(

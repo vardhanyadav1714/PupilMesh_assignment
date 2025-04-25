@@ -20,8 +20,9 @@ class MangaPagingSource(
 
                  if (page == 1) {
                     repository.clearCache()
-                    repository.cacheMangaData(response.data)
                 }
+
+                 repository.cacheMangaData(response.data)
 
                 LoadResult.Page(
                     data = response.data.map { it.toMangaDataTable() },

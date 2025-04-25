@@ -14,7 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
-import `in`.innovaticshub.pupilmesh_assignment.presentation.MangaAppNavigation
+ import `in`.innovaticshub.pupilmesh_assignment.presentation.PupilMeshAppNavigation
 import `in`.innovaticshub.pupilmesh_assignment.ui.theme.PupilMesh_assignmentTheme
 
 @AndroidEntryPoint
@@ -23,8 +23,8 @@ class MainActivity : ComponentActivity() {
     private val cameraPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (!isGranted) {
-                Toast.makeText(this, "Camera permission is required", Toast.LENGTH_LONG).show()
-            }
+             }
+
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,5 +50,5 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Greetings(innerPaddingValues: PaddingValues){
-    MangaAppNavigation()
+    PupilMeshAppNavigation()
 }

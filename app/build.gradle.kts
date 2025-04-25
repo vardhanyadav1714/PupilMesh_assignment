@@ -51,7 +51,7 @@ android {
 
 
 dependencies {
-
+    implementation("com.google.accompanist:accompanist-permissions:0.30.0")
     implementation("androidx.compose.material:material:1.6.4")
      implementation("com.google.accompanist:accompanist-swiperefresh:0.34.0")
     implementation("androidx.paging:paging-runtime:3.2.1")

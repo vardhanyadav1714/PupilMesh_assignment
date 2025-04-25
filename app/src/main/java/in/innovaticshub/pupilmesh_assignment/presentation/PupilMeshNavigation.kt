@@ -9,7 +9,7 @@ import `in`.innovaticshub.pupilmesh_assignment.home_screen.presentation.HomeScre
 import `in`.innovaticshub.pupilmesh_assignment.login_screen.presentation.LoginScreen
 
 @Composable
-fun MangaAppNavigation() {
+fun PupilMeshAppNavigation() {
     val navController = rememberNavController()
 
 
