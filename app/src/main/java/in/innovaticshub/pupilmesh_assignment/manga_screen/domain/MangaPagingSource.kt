@@ -14,13 +14,12 @@ class MangaPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MangaDataTable> {
         return try {
             val page = params.key ?: 1
-            val pageSize = params.loadSize
 
             if (isOnline) {
                 val response = repository.fetchMangaData(page)
 
-                // Cache only if we got fresh data
-                if (response.data.isNotEmpty()) {
+                 if (page == 1) {
+                    repository.clearCache()
                     repository.cacheMangaData(response.data)
                 }
 
@@ -31,6 +30,7 @@ class MangaPagingSource(
                 )
             } else {
                 val cachedData = repository.getCachedMangaData()
+                val pageSize = params.loadSize
                 val pagedData = cachedData
                     .drop((page - 1) * pageSize)
                     .take(pageSize)
@@ -42,7 +42,7 @@ class MangaPagingSource(
                 )
             }
         } catch (e: Exception) {
-             try {
+            try {
                 val cachedData = repository.getCachedMangaData()
                 LoadResult.Page(
                     data = cachedData,

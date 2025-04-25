@@ -1,6 +1,8 @@
 package `in`.innovaticshub.pupilmesh_assignment.login_screen.presentation
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +15,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
@@ -20,7 +25,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +42,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -48,185 +58,191 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(navController: NavHostController) {
     val scope = rememberCoroutineScope()
-    val viewmodel: LoginViewModel = hiltViewModel()
+    val viewModel: LoginViewModel = hiltViewModel()
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
-    LaunchedEffect(viewmodel.loginState) {
-        viewmodel.loginState.collect { state ->
-            when (state) {
-                is LoginState.Authenticated -> {
-                    navController.navigate(PupilMeshScreens.HOME_SCREEN.name) {
-                        popUpTo(PupilMeshScreens.LOGIN_SCREEN.name) { inclusive = true }
-                    }
-                }
-                else -> {
+    val isDataValid = validateData(email, password)
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
+    LaunchedEffect(viewModel.loginState) {
+        viewModel.loginState.collect { state ->
+            if (state is LoginState.Authenticated) {
+                navController.navigate(PupilMeshScreens.HOME_SCREEN.name) {
+                    popUpTo(PupilMeshScreens.LOGIN_SCREEN.name) { inclusive = true }
                 }
             }
         }
     }
-    Box(modifier = Modifier.fillMaxSize()) {
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
          Row(
             modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(top = 40.dp, start = 16.dp),
+                .fillMaxWidth()
+                .padding(top = 40.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(imageVector = Icons.Default.Close, contentDescription = "close icon")
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Close icon",
+                modifier = Modifier.clickable { navController.popBackStack() }
+            )
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Sign In", textAlign = TextAlign.Center)
+            Text("Sign In", style = MaterialTheme.typography.titleMedium)
         }
 
-         Box(
+         Card(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 140.dp, start = 7.dp, end = 7.dp),
-            contentAlignment = Alignment.TopCenter
+                .fillMaxWidth()
+                .padding(top = 80.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.95f)
-                    .fillMaxHeight(0.70f),
-                contentAlignment = Alignment.Center
+            Column(
+                modifier = Modifier.padding(start = 20.dp, top = 30.dp, end = 20.dp, bottom = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Card(modifier = Modifier.fillMaxSize()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = 40.dp, bottom = 20.dp)
-                    ) {
-                         Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text("Zenithra", fontSize = 22.sp)
-                            Spacer(modifier = Modifier.height(10.dp))
-                            Text("Welcome Back", fontSize = 35.sp)
-                            Spacer(modifier = Modifier.height(5.dp))
-                            Text("Please enter your details to sign in", fontSize = 12.sp)
-                        }
+                 Text("Zenithra", style = MaterialTheme.typography.titleLarge)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Welcome Back", style = MaterialTheme.typography.displaySmall)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    "Please enter your details to sign in",
+                    style = MaterialTheme.typography.bodySmall
+                )
 
-                         Row(
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.google),
-                                contentDescription = "Google login",
-                                modifier = Modifier.size(80.dp)
-                            )
-                            Image(
-                                painter = painterResource(R.drawable.apple),
-                                contentDescription = "Apple login",
-                                modifier = Modifier.size(80.dp)
-                            )
-                        }
+                 Row(
+                    modifier = Modifier.padding(vertical = 5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                     Image(
+                         painter = painterResource(R.drawable.google),
+                         contentDescription = "Google login",
+                         modifier = Modifier.size(80.dp)
+                     )
+                     Image(
+                         painter = painterResource(R.drawable.apple),
+                         contentDescription = "Apple login",
+                         modifier = Modifier.size(80.dp)
+                     )
+                }
 
-                         Row(
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            HorizontalDivider(
-                                modifier = Modifier
-                                    .height(1.dp)
-                                    .fillMaxWidth(0.45f)
-                                    .padding(start = 20.dp),
-                                color = Color.Gray
-                            )
-                            Text("OR")
-                            HorizontalDivider(
-                                modifier = Modifier
-                                    .height(1.dp)
-                                    .fillMaxWidth(0.45f)
-                                    .padding(end = 20.dp),
-                                color = Color.Gray
-                            )
-                        }
+                 Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                    Text(
+                        "OR",
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
 
-                         Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 20.dp)
-                        ) {
-                            Spacer(modifier = Modifier.height(20.dp))
-                            OutlinedTextField(
-                                value = email,
-                                onValueChange = { email = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                placeholder = { Text("Your Email Address") },
-                                maxLines = 1
-                            )
-                            Spacer(modifier = Modifier.height(20.dp))
-                            OutlinedTextField(
-                                value = password,
-                                onValueChange = { password = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                placeholder = { Text("Password") },
-                                maxLines = 1
-                            )
-                        }
+                 Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Email Address") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                    )
 
-                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(end = 10.dp, top = 20.dp),
-                            horizontalArrangement = Arrangement.End
-                        ) {
-                            Text(
-                                "Forgot password?",
-                                textDecoration = TextDecoration.Underline
-                            )
-                        }
+                     OutlinedTextField(
+                         value = password,
+                         onValueChange = { password = it },
+                         modifier = Modifier.fillMaxWidth(),
+                         label = { Text("Password") },
+                         singleLine = true,
+                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                         trailingIcon = {
+                             IconButton(
+                                 onClick = { passwordVisible = !passwordVisible }
+                             ) {
+                                 Icon(
+                                     painter = if (passwordVisible)
+                                     painterResource(R.drawable.password_visibility)
+                                     else
+                                        painterResource(R.drawable.password_visibility_off),
+                                     contentDescription = if (passwordVisible)
+                                         "Hide password"
+                                     else
+                                         "Show password"
+                                 )
+                             }
+                         }
+                     )
+                }
 
-                         Column(
-                            modifier = Modifier
-                                 .fillMaxWidth()
-                                .padding(top = 20.dp),
-                            verticalArrangement = Arrangement.Bottom
-                        ) {
-                            val isDataValid = validateData(email, password)
-                            Button(
-                                onClick = {
-                                    if (isDataValid) {
-                                        scope.launch {
-                                            if (validateData(email, password)) {
-                                                viewmodel.login(email, password)
-                                                navController.navigate(PupilMeshScreens.HOME_SCREEN.name){
-                                                    popUpTo(PupilMeshScreens.LOGIN_SCREEN.name){inclusive=true}
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth(0.9f)
-                                    .align(Alignment.CenterHorizontally),
-                                enabled = isDataValid,
-                                colors = if (isDataValid) ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
-                                else ButtonDefaults.buttonColors(Color.LightGray)
-                            ) {
-                                Text("Sign In", fontSize = 16.sp)
-                            }
+                 Text(
+                    "Forgot password?",
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .clickable {   },
+                     fontSize = 16.sp,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        textDecoration = TextDecoration.Underline
+                    )
 
-                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 16.dp),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Text("Don't have an account?")
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Sign Up", fontWeight = FontWeight.Bold)
-                            }
+                )
+
+                 Button(
+                    onClick = {
+                        scope.launch {
+                            viewModel.login(email, password)
                         }
-                    }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp),
+                    enabled = isDataValid,
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    Text("Sign In", style = MaterialTheme.typography.labelLarge)
+                }
+
+                 Row(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Don't have an account?")
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        "Sign Up",
+                        modifier = Modifier.clickable {
+
+                        },
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
                 }
             }
         }
     }
 }
 
-fun validateData(email: String, password: String): Boolean {
-    return email.isNotBlank() && password.isNotBlank() && email.length > 10 && email.contains("@") && password.length > 10
+
+private fun validateData(email: String, password: String): Boolean {
+    return email.isNotBlank() && password.isNotBlank() &&
+            email.length > 5 && email.contains("@") &&
+            password.length >= 8
 }

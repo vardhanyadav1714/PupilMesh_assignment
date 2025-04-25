@@ -30,48 +30,25 @@ class MangaViewModel @Inject constructor(
     private val _isOnline = MutableStateFlow(false)
     val isOnline = _isOnline.asStateFlow()
 
-     private val refreshTrigger = MutableStateFlow(Unit)
-
-     val mangaPagingFlow: Flow<PagingData<MangaDataTable>> =
-        refreshTrigger
-            .flatMapLatest {
-                Pager(
-                    config = PagingConfig(
-                        pageSize = 20,
-                        enablePlaceholders = false,
-                        initialLoadSize = 20
-                    ),
-                    pagingSourceFactory = {
-                        MangaPagingSource(
-
-                            repository, _isOnline.value,
-
-                        )
-                    }
-                ).flow
-            }
-            .cachedIn(viewModelScope)
+    val mangaPagingFlow = Pager(
+        config = PagingConfig(
+            pageSize = 20,
+            enablePlaceholders = false
+        ),
+        pagingSourceFactory = {
+            MangaPagingSource(repository, _isOnline.value)
+        }
+    ).flow.cachedIn(viewModelScope)
 
     init {
         checkNetworkStatus()
     }
-
-    fun refreshData() {
-        viewModelScope.launch {
-            if (_isOnline.value) {
-                repository.clearCache()
-            }
-        }
-    }
-
-
 
     private fun checkNetworkStatus() {
         val networkCallback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
                 _isOnline.value = true
             }
-
             override fun onLost(network: Network) {
                 _isOnline.value = false
             }
@@ -87,4 +64,3 @@ class MangaViewModel @Inject constructor(
         _isOnline.value = connectivityManager.activeNetwork != null
     }
 }
-

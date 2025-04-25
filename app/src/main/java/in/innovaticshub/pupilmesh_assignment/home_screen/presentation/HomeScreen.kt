@@ -1,5 +1,6 @@
 package `in`.innovaticshub.pupilmesh_assignment.home_screen.presentation
 
+ import androidx.compose.foundation.BorderStroke
  import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,7 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
  import androidx.compose.foundation.shape.RoundedCornerShape
  import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+ import androidx.compose.material3.Button
+ import androidx.compose.material3.ButtonDefaults
  import androidx.compose.material3.Icon
+ import androidx.compose.material3.OutlinedButton
  import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -73,17 +77,18 @@ fun HomeScreen(navController1: NavHostController) {
                             )
                         }
                     } else {
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(50))
-                                .background(if (isSelected) selectedColor else Color.Transparent)
-                                .clickable { selectedItem = index }
-                                .padding(horizontal = 20.dp, vertical = 8.dp),
-                            contentAlignment = Alignment.Center
+                        OutlinedButton(
+                            onClick = { selectedItem = index },
+                            shape = RoundedCornerShape(50),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = if (isSelected) selectedColor else Color.Transparent,
+                                contentColor = if (isSelected) Color.Black else unselectedColor
+                            ),
+                            border = BorderStroke(1.dp, if (isSelected) selectedColor else unselectedColor),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {
                             Text(
                                 text = item,
-                                color = if (isSelected) Color.Black else unselectedColor,
                                 fontWeight = FontWeight.Bold
                             )
                         }

@@ -45,10 +45,8 @@ class LoginViewModel @Inject constructor(private val repository: LoginRepository
                     LoginEntity(email = email, password = password, isLoggedIn = true)
                 }
 
-                // Logout any existing users
-                repository.logoutAllUsers()
-                // Save new user
-                repository.insertLoginData(user)
+                 repository.logoutAllUsers()
+                 repository.insertLoginData(user)
                 repository.setLoggedIn(email, true)
                 _loginState.value = LoginState.Authenticated(user)
             } catch (e: Exception) {

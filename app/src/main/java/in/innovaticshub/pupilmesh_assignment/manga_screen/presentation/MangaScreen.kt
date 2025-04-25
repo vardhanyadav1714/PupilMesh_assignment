@@ -44,73 +44,56 @@ import coil3.compose.AsyncImage
 import `in`.innovaticshub.pupilmesh_assignment.manga_screen.data.local.entity.MangaDataTable
 import `in`.innovaticshub.pupilmesh_assignment.presentation.PupilMeshScreens
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MangaScreen(navController: NavHostController) {
     val viewModel: MangaViewModel = hiltViewModel()
     val isOnline by viewModel.isOnline.collectAsState()
-    val lazyGridState = rememberLazyGridState()
     val mangaItems = viewModel.mangaPagingFlow.collectAsLazyPagingItems()
-    val isRefreshing = remember { derivedStateOf { mangaItems.loadState.refresh is LoadState.Loading } }
-    val pullRefreshState = rememberPullRefreshState(
-        refreshing = isRefreshing.value,
-        onRefresh = { viewModel.refreshData() }
-    )
 
-    Box(modifier = Modifier.pullRefresh(pullRefreshState)) {
-        Column {
-            if (!isOnline) {
-                OfflineBanner()
+    Column {
+        if (!isOnline) {
+            OfflineBanner()
+        }
+
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(120.dp),
+            contentPadding = PaddingValues(8.dp),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(mangaItems.itemCount) { index ->
+                mangaItems[index]?.let { manga ->
+                    MangaItem(manga, navController)
+                }
             }
 
-            LazyVerticalGrid(
-                state = lazyGridState,
-                columns = GridCells.Adaptive(120.dp),
-                contentPadding = PaddingValues(8.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(mangaItems.itemCount) { index ->
-                    mangaItems[index]?.let { manga ->
-                        MangaItem(manga, navController)
+            when (mangaItems.loadState.append) {
+                is LoadState.Loading -> {
+                    item { LoadingIndicator() }
+                }
+                is LoadState.Error -> {
+                    item {
+                        ErrorItem(
+                            error = (mangaItems.loadState.append as LoadState.Error).error,
+                            onRetry = { mangaItems.retry() }
+                        )
                     }
                 }
-
-                when (mangaItems.loadState.append) {
-                    is LoadState.Loading -> {
-                        item { LoadingIndicator() }
-                    }
-                    is LoadState.Error -> {
-                        item {
-                            ErrorItem(
-                                error = (mangaItems.loadState.append as LoadState.Error).error,
-                                onRetry = { mangaItems.retry() }
-                            )
-                        }
-                    }
-                    else -> {}
-                }
+                else -> {}
             }
         }
 
-        PullRefreshIndicator(
-            refreshing = isRefreshing.value,
-            state = pullRefreshState,
-            modifier = Modifier.align(Alignment.TopCenter)
-        )
-
         if (mangaItems.loadState.refresh is LoadState.Loading) {
-            LoadingIndicator(modifier = Modifier.fillMaxSize())
+             LoadingIndicator(modifier = Modifier.fillMaxSize())
         }
 
         if (mangaItems.loadState.refresh is LoadState.Error) {
             ErrorItem(
                 error = (mangaItems.loadState.refresh as LoadState.Error).error,
-                onRetry = { mangaItems.refresh() },
-             )
+                onRetry = { mangaItems.refresh() }
+            )
         }
     }
 }
-
 @Composable
 private fun OfflineBanner() {
     Box(
